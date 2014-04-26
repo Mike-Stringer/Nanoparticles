@@ -197,6 +197,8 @@ __global__ void cudarandomwalk2(Polymer *polymers) {
 
 			polymer.currentnode = polymer.Randoz[z];
 			polymer.randomdir =  polymer.Randoz2[z];
+			//if (idx==0) printf("checking currentnode on device = %d  \n", polymer.currentnode);
+		    //if (idx==0) printf("checking randomdir on device = %d  \n", polymer.randomdir);
 			//polymer.currentnode = 1;
 			//polymer.randomdir =  1;
 
@@ -488,7 +490,7 @@ int main()
 	srand(time(NULL));
 
 	ofstream outfile;
-    outfile.open ("TEST6.txt");//**************************************************************************************************************
+    outfile.open ("TEST7.txt");//**************************************************************************************************************
     if (!outfile.is_open())
     { 
 	    cout << "file not open" << endl;
@@ -560,14 +562,14 @@ int main()
 			{
 				statistics rsq;
                 statistics flength;
-			    if ((y == 10))  starttime2=clock();
+			    if ((y == 1000))  starttime2=clock();
 				cudarandomwalk2<<<(polycount/(256))+1, polycount>>>(Allpoly);  //(polycount/(256))+1
                 //cudarandomwalk<<<(polycount+255)/256, 256>>>(*Allpoly);
 				cudaDeviceSynchronize();
-				if ((y == 10))  finishtime2=clock();
-	            if ((y == 10)) cout<<endl<<"1 random walk takes "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
+				if ((y == 1000))  finishtime2=clock();
+	            if ((y == 1000)) cout<<endl<<"1 random walk takes "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 
-				if ((y % 2) == 0) cout << y << endl;
+				if ((y % 5000) == 0) cout << y << endl;
 	    
 				for (x=0; x < polycount; x++) 
 				{
