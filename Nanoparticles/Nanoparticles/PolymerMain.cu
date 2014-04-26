@@ -70,8 +70,6 @@ struct Polymer : public Managed{
 			  int Gridx[POLYLENGTH];
 			  int Gridy[POLYLENGTH];
 			  int Gridz[POLYLENGTH];
-			  //int Randoz[POLYLENGTH];
-			  //int Randoz2[POLYLENGTH];
 			  //float Stats[150000];
 			  int tracker;
 			  int check;
@@ -108,13 +106,9 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 	{
 		Polymer& polymer = polymers[idx];
 		curandState& randState = randStates[idx];
-
 		curand_init(seed, idx, 0, &randState);
-		//array
-		//polymer.check++;
-	    //printf("checking threading on device = %d  \n", POLYLENGTH);
-		//printf("checking threading on device = %d  \n", polymer.check);
-		for (int z=0; z<(POLYLENGTH*polymer.check); z++)
+		
+		for (int z=0; z<(POLYLENGTH); z++)
 		{
 			polymer.xsame = 0; //random
 			polymer.ysame = 0;
@@ -123,10 +117,7 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 
 			polymer.currentnode = (int)(curand_uniform(&randState)*POLYLENGTH);
 			polymer.randomdir = (int)(curand_uniform(&randState)*6);
-	        //if (idx==0) printf("checking currentnode on device = %d  \n", polymer.currentnode);
-		    //if (idx==0) printf("checking randomdir on device = %d  \n", polymer.randomdir);
-			//polymer.currentnode = 1;
-			//polymer.randomdir =  1;
+	        //if (idx==0 && z==0) printf("checking thread on device = %d cn, %d  \n", idx, polymer.currentnode);
 
 			polymer.upnode=(polymer.currentnode+1);
 			polymer.downnode=(polymer.currentnode-1);
@@ -180,8 +171,6 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 				}
 			}
 		}
-    //polymer.currentnode++;
-	//polymer.randomdir++;
     }
 }
 
@@ -265,19 +254,6 @@ void Polymer::intial()
 
        }
 }
-
-//void Polymer::random()
-//{
-//
-//int x;
-//
-//	   for (x=0; x < (POLYLENGTH); x++)
-//	   {
-//	              Randoz[x]=rand()%POLYLENGTH;
-//				  Randoz2[x]=rand()%6;
-//	   }
-//
-//}
 
 void Polymer::polylength()
 {
@@ -416,7 +392,7 @@ int main()
 	srand(time(NULL));
 
 	ofstream outfile;
-    outfile.open ("TEST6.txt");//**************************************************************************************************************
+    outfile.open ("TEST8.txt");//**************************************************************************************************************
     if (!outfile.is_open())
     { 
 	    cout << "file not open" << endl;
@@ -473,7 +449,6 @@ int main()
 				//	Allpoly[i].Stats[q] = (float)q;
 			 //   }
 				Allpoly[i].intial();
-				//Allpoly[i].random();
 			    Allpoly[i].comin();
             }
 			Allpoly[0].polylength();
@@ -491,8 +466,7 @@ int main()
 				statistics rsq;
                 statistics flength;
 			    if ((y == 1000))  starttime2=clock();
-				cudarandomwalk<<<(polycount/(256))+1, polycount>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
-                //cudarandomwalk<<<(polycount+255)/256, 256>>>(*Allpoly);
+				cudarandomwalk<<<(polycount/(256))+1, polycount>>>(Allpoly, randStates, time(NULL)+y);  //(polycount/(256))+1
 				cudaDeviceSynchronize();
 				if ((y == 1000))  finishtime2=clock();
 	            if ((y == 1000)) cout<<endl<<"1 random walk takes "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
@@ -501,8 +475,6 @@ int main()
 	    
 				for (x=0; x < polycount; x++) 
 				{
-					//Allpoly[x].random();
-					
 					if (y==SUBDIFFUSE)
 					{
 					     Allpoly[x].comin();
