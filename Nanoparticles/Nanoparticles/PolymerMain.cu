@@ -23,9 +23,10 @@ using namespace std;
 
 //Timing stuff
 
-#define TIMESTEPS 10000
-#define SUBDIFFUSE 5000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
-#define DIFFUSE 7500           //81, do y=1250000 101, do y=2000000
+#define TIMESTEPS 5000
+#define SUBDIFFUSE 2000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
+#define DIFFUSE 3000           //81, do y=1250000 101, do y=2000000
+#define DATAPOINTS ((TIMESTEPS/100)+100)
 
 //length of polymer
 
@@ -70,7 +71,9 @@ struct Polymer : public Managed{
 			  int Gridx[POLYLENGTH];
 			  int Gridy[POLYLENGTH];
 			  int Gridz[POLYLENGTH];
-			  //float Stats[150000];
+			  float endtoends[DATAPOINTS];
+			  float beadtomids[DATAPOINTS];
+			  float radofgys[DATAPOINTS];
 			  int tracker;
 			  int check;
               int currentnode;
@@ -107,68 +110,118 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 		Polymer& polymer = polymers[idx];
 		curandState& randState = randStates[idx];
 		curand_init(seed, idx, 0, &randState);
+
+		int datapointindex = 0;
 		
-		for (int z=0; z<(POLYLENGTH); z++)
+		for (int y=0; y<=TIMESTEPS; y++)
 		{
-			polymer.xsame = 0; //random
-			polymer.ysame = 0;
-			polymer.zsame = 0;
-			polymer.block = 0;
 
-			polymer.currentnode = (int)(curand_uniform(&randState)*POLYLENGTH);
-			polymer.randomdir = (int)(curand_uniform(&randState)*6);
-	        //if (idx==0 && z==0) printf("checking thread on device = %d cn, %d  \n", idx, polymer.currentnode);
-
-			polymer.upnode=(polymer.currentnode+1);
-			polymer.downnode=(polymer.currentnode-1);
-
-			if ((0 < polymer.currentnode) && (polymer.currentnode < (POLYLENGTH-1)))
+			for (int z=0; z<(POLYLENGTH); z++)
 			{
-				if (polymer.Gridx[polymer.downnode] == polymer.Gridx[polymer.upnode])   polymer.xsame = 1;
-				if (polymer.Gridy[polymer.downnode] == polymer.Gridy[polymer.upnode])   polymer.ysame = 1;
-				if (polymer.Gridz[polymer.downnode] == polymer.Gridz[polymer.upnode])   polymer.zsame = 1;
-			}
+				polymer.xsame = 0; //random
+				polymer.ysame = 0;
+				polymer.zsame = 0;
+				polymer.block = 0;
 
-			if (polymer.currentnode == 0)
-			{
-				polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.upnode];
-				polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.upnode];
-				polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.upnode];
-				if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
-				else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
-				else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
-				else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
-				else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
-				else polymer.Gridz[polymer.currentnode]++;    
-			}
+				polymer.currentnode = (int)(curand_uniform(&randState)*POLYLENGTH);
+				polymer.randomdir = (int)(curand_uniform(&randState)*6);
+				//if (idx==0 && z==0) printf("checking thread on device = %d cn, %d  \n", idx, polymer.currentnode);
 
-			if (polymer.currentnode == (POLYLENGTH-1))
-			{
-				polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.downnode];
-				polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.downnode];
-				polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.downnode];
-				if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
-				else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
-				else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
-				else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
-				else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
-				else polymer.Gridz[polymer.currentnode]++;    
-			}
+				polymer.upnode=(polymer.currentnode+1);
+				polymer.downnode=(polymer.currentnode-1);
 
-			if ((0 < polymer.currentnode) && (polymer.currentnode < (POLYLENGTH-1)))
-			{
-				if ((polymer.xsame == 1) && (polymer.ysame == 1) && (polymer.zsame == 1))
+				if ((0 < polymer.currentnode) && (polymer.currentnode < (POLYLENGTH-1)))
 				{
-				polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.upnode];
-				polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.upnode];
-				polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.upnode];
-				if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
-				else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
-				else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
-				else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
-				else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
-				else polymer.Gridz[polymer.currentnode]++;    
+					if (polymer.Gridx[polymer.downnode] == polymer.Gridx[polymer.upnode])   polymer.xsame = 1;
+					if (polymer.Gridy[polymer.downnode] == polymer.Gridy[polymer.upnode])   polymer.ysame = 1;
+					if (polymer.Gridz[polymer.downnode] == polymer.Gridz[polymer.upnode])   polymer.zsame = 1;
 				}
+
+				if (polymer.currentnode == 0)
+				{
+					polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.upnode];
+					polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.upnode];
+					polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.upnode];
+					if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
+					else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
+					else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
+					else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
+					else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
+					else polymer.Gridz[polymer.currentnode]++;    
+				}
+
+				if (polymer.currentnode == (POLYLENGTH-1))
+				{
+					polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.downnode];
+					polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.downnode];
+					polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.downnode];
+					if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
+					else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
+					else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
+					else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
+					else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
+					else polymer.Gridz[polymer.currentnode]++;    
+				}
+
+				if ((0 < polymer.currentnode) && (polymer.currentnode < (POLYLENGTH-1)))
+				{
+					if ((polymer.xsame == 1) && (polymer.ysame == 1) && (polymer.zsame == 1))
+					{
+					polymer.Gridx[polymer.currentnode] = polymer.Gridx[polymer.upnode];
+					polymer.Gridy[polymer.currentnode] = polymer.Gridy[polymer.upnode];
+					polymer.Gridz[polymer.currentnode] = polymer.Gridz[polymer.upnode];
+					if (polymer.randomdir == 0) polymer.Gridx[polymer.currentnode]--;          
+					else if (polymer.randomdir == 1) polymer.Gridx[polymer.currentnode]++;        
+					else if (polymer.randomdir == 2) polymer.Gridy[polymer.currentnode]--;
+					else if (polymer.randomdir == 3) polymer.Gridy[polymer.currentnode]++; 
+					else if (polymer.randomdir == 4) polymer.Gridz[polymer.currentnode]--;   
+					else polymer.Gridz[polymer.currentnode]++;    
+					}
+				}
+			}
+			if (y == SUBDIFFUSE)
+			{
+	//			polymer.comin();
+				double smidx = 0.0;
+				double smidy = 0.0;
+				double smidz = 0.0;
+				for (int i; i < POLYLENGTH; i++)
+				{
+					 smidx = smidx + (double)polymer.Gridx[i];
+					 smidy = smidy + (double)polymer.Gridy[i];
+					 smidz = smidz + (double)polymer.Gridz[i];
+				}
+				polymer.smidx = smidx;
+				polymer.smidy = smidy;
+				polymer.smidz = smidz;
+			}
+			if ((y % 100) == 0 )
+			{
+//				polymer.polylength();
+				double dx = polymer.Gridx[POLYLENGTH - 1] - polymer.Gridx[0];
+				double dy = polymer.Gridy[POLYLENGTH - 1] - polymer.Gridy[0];
+				double dz = polymer.Gridz[POLYLENGTH - 1] - polymer.Gridz[0];
+			    polymer.endtoend = sqrt(dx * dx + dy * dy + dz * dz);
+
+//				polymer.com();
+				double xSum = 0.0;
+				double ySum = 0.0;
+				double zSum = 0.0;
+				for (int i; i < POLYLENGTH; i++)
+				{
+					 xSum = xSum + (double)polymer.Gridx[i];
+					 ySum = ySum + (double)polymer.Gridy[i];
+					 zSum = zSum + (double)polymer.Gridz[i];
+				}
+				 xSum = (xSum - polymer.smidx)/double(POLYLENGTH);
+				 ySum = (ySum - polymer.smidy)/double(POLYLENGTH);
+				 zSum = (zSum - polymer.smidz)/double(POLYLENGTH);
+
+				 polymer.beadtomid = ((xSum*xSum)+(ySum*ySum)+(zSum*zSum));
+
+				 polymer.endtoends[datapointindex] = (float)polymer.endtoend;
+				 polymer.beadtomids[datapointindex] = (float)polymer.beadtomid;
+				 datapointindex++;
 			}
 		}
     }
@@ -461,34 +514,22 @@ int main()
 
 //-----------------------------------------------------------KERNAL CALL------------------------------------------------------------------------------------//
 
-		    for (y=0; y<=TIMESTEPS; y++)
+
+			cudarandomwalk<<<(polycount/(256))+1, polycount>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
+			cudaDeviceSynchronize();
+
+            int datapointindex = 0;
+			for (y=0; y<=TIMESTEPS; y++)
 			{
 				statistics rsq;
                 statistics flength;
-			    if ((y == 1000))  starttime2=clock();
-				cudarandomwalk<<<(polycount/(256))+1, polycount>>>(Allpoly, randStates, time(NULL)+y);  //(polycount/(256))+1
-				cudaDeviceSynchronize();
-				if ((y == 1000))  finishtime2=clock();
-	            if ((y == 1000)) cout<<endl<<"1 random walk takes "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
-
-				if ((y % 5000) == 0) cout << y << endl;
-	    
 				for (x=0; x < polycount; x++) 
 				{
-					if (y==SUBDIFFUSE)
-					{
-					     Allpoly[x].comin();
-					}
-
 					if ((y % 100) == 0 )
 					{
-						Allpoly[x].polylength();
-						Allpoly[x].com();
-						//rsqmap[y].add(Allpoly[x].beadtomid);
-						//flengthmap[y].add(Allpoly[x].endtoend);
-                        rsq.add(Allpoly[x].beadtomid);
-                        flength.add(Allpoly[x].endtoend);
-
+                        rsq.add(Allpoly[x].beadtomids[datapointindex]);
+                        flength.add(Allpoly[x].endtoends[datapointindex]);
+						datapointindex++;
 					}
 				}
 				if ((y % 100) == 0 ) 
