@@ -18,14 +18,21 @@ using namespace std;
 
 //gpu stuff
 
-#define NoPOLY 112
+#define NoPOLY 512
+
 //Timing stuff
 
-#define TIMESTEPS 10000
-#define SUBDIFFUSE 5000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
-#define DIFFUSE 7500           //81, do y=1250000 101, do y=2000000
-#define DATAPOINTS ((TIMESTEPS/10)+10)
+#define TIMESTEPS 750000
+#define SUBDIFFUSE 80000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
+#define DIFFUSE 120000           //81, do y=1250000 101, do y=2000000
+#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
+//#define DATAPOINTS ((TIMESTEPS/10)+10)
 
+//(((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10)
+//(((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) 
+//(((DIFFUSE*5) - (DIFFUSE))/5000)
+//(((TIMESTEPS) - (DIFFUSE*5))/30000)
+	
 //length of polymer
 
 #define POLYLENGTH 21
@@ -92,9 +99,7 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 		int currentnode = 0;
         int upnode;
         int downnode;
-        int xsame;
-        int ysame;
-        int zsame;
+ 
         int randomdir = 0;
         float endtoend;
         float beadtomid;
@@ -210,9 +215,6 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 
 			for (int z=0; z<(POLYLENGTH); z++)
 			{
-				xsame = 0;
-				ysame = 0;
-				zsame = 0;
 				block = 0;
 
 				//if (currentnode == POLYLENGTH) currentnode = 0;  //DEBRANCHING CHECK############################
@@ -226,13 +228,6 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 
 				upnode=(currentnode+1);
 				downnode=(currentnode-1);
-
-				if ((0 < currentnode) && (currentnode < (POLYLENGTH-1)))
-				{
-					if (Gridx[downnode] == Gridx[upnode])   xsame = 1;
-					if (Gridy[downnode] == Gridy[upnode])   ysame = 1;
-					if (Gridz[downnode] == Gridz[upnode])   zsame = 1;
-				}
 
 				if (currentnode == 0)
 				{
@@ -262,7 +257,7 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 
 				if ((0 < currentnode) && (currentnode < (POLYLENGTH-1)))
 				{
-					if ((xsame == 1) && (ysame == 1) && (zsame == 1))
+					if ((Gridx[downnode] == Gridx[upnode]) && (Gridy[downnode] == Gridy[upnode]) && (Gridz[downnode] == Gridz[upnode]) )
 					{
 					Gridx[currentnode] = Gridx[upnode];
 					Gridy[currentnode] = Gridy[upnode];
@@ -293,7 +288,10 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 				//polymer.smidy = smidy;
 				//polymer.smidz = smidz;
 			}
-			if ((y % 10) == 0 )
+			//if ((y % 10) == 0 )
+			if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+            ((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+            ((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 			{
 				dx = 0;
 				dy = 0;
@@ -388,6 +386,12 @@ int main()
 	int y;
 	int x;
 	int q;
+	int check1 = (((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10);
+	int check2 = (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250);
+	int check3 = (((DIFFUSE*5) - (DIFFUSE))/5000);
+	int check4 = (((TIMESTEPS) - (DIFFUSE*5))/30000);
+
+	cout << "Should be integers:" << check1 << "," << check2 << "," << check3 << "," << check4 << endl;
 
 	srand(time(NULL));
 
@@ -411,32 +415,20 @@ int main()
 	
 		    for (i=0; i < polycount; i++) 
 			{
-				//for (q=0; q < POLYLENGTH; q++)
-				//{
-				//	Allpoly[i].Gridx[q] = NANOSIZE;
-				//	Allpoly[i].Gridy[q] = NANOSIZE;
-				//	Allpoly[i].Gridz[q] = NANOSIZE;
-			 //   }
 				for (q=0; q < DATAPOINTS; q++)
 				{
 					Allpoly[i].endtoends[q]=0;
 			        Allpoly[i].beadtomids[q]=0;
                     Allpoly[i].radofgys[q]=0;
 			    }
-				//Allpoly[i].smidx = 0;
-				//Allpoly[i].smidx = 0;
-			 //   Allpoly[i].smidx = 0;
             }
 
-			//for (g=0; g<POLYLENGTH; g++)
-			//{
-			//	cout << "_____________________________" << endl;
-			//	cout << "Bead no " << (g) <<" at (" << Allpoly[0].Gridx[g] << "," << Allpoly[0].Gridy[g] << "," << Allpoly[0].Gridz[g] << ")"  << endl;
-			//}
 //-----------------------------------------------------------KERNAL CALL------------------------------------------------------------------------------------//
-
-			cudarandomwalk<<<112, 1>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
+		    starttime2 = clock();
+			cudarandomwalk<<<8, 64>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
 			cudaDeviceSynchronize();
+			finishtime2 = clock();
+			cout<<endl<<"Kernal Run time is "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 
             int datapointindex = 0;
 			for (y=0; y<=TIMESTEPS; y++)
@@ -445,7 +437,10 @@ int main()
                 statistics flength;
 				statistics rgst;
 
-				if ((y % 10) == 0 )
+				//if ((y % 10) == 0 )
+			    if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+                ((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+                ((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 				{
 						for (x=0; x < polycount; x++) 
 				        {
@@ -455,20 +450,17 @@ int main()
 				        }
 	            datapointindex++;
 				}
-				if ((y % 10) == 0 ) 
+				//if ((y % 10) == 0 )
+			    if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+                ((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+                ((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
                 {
-                                outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
+                                outfile << (y-SUBDIFFUSE) << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
                 }
 			}
 
 			cout << "_____________" << endl << "END OF RANDOMWALK" << endl;
-			
-			//for (g=0; g<POLYLENGTH; g++)
-			//{
-			//	cout << "_____________________________" << endl;
-			//	cout << "Bead no " << (g) <<" at (" << Allpoly[0].Gridx[g] << "," << Allpoly[0].Gridy[g] << "," << Allpoly[0].Gridz[g] << ")"  << endl;
-			//}
-           
+			          
 			cudaFree(Allpoly);
 			cudaFree(randStates);
 	
@@ -479,7 +471,7 @@ int main()
 	cudaDeviceReset();
 	outfile.close();
 	long finishTime = clock();
-	cout<<endl<<"Run time is "<<((finishTime - startTime)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
+	cout<<endl<<"Program Run time is "<<((finishTime - startTime)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 	//system("PAUSE");
     return 0;
 }
