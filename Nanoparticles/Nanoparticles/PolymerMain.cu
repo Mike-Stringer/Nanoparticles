@@ -18,7 +18,7 @@ using namespace std;
 
 //gpu stuff
 
-#define NoPOLY 512
+#define NoPOLY 896
 
 //Timing stuff
 
@@ -425,7 +425,7 @@ int main()
 
 //-----------------------------------------------------------KERNAL CALL------------------------------------------------------------------------------------//
 		    starttime2 = clock();
-			cudarandomwalk<<<8, 64>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
+			cudarandomwalk<<<112, 8>>>(Allpoly, randStates, time(NULL));  //(polycount/(256))+1
 			cudaDeviceSynchronize();
 			finishtime2 = clock();
 			cout<<endl<<"Kernal Run time is "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
