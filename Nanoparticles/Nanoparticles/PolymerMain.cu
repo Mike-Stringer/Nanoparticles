@@ -22,11 +22,11 @@ using namespace std;
 
 //Timing stuff
 
-#define TIMESTEPS 750000
-#define SUBDIFFUSE 80000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
-#define DIFFUSE 120000           //81, do y=1250000 101, do y=2000000
-#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
-//#define DATAPOINTS ((TIMESTEPS/10)+10)
+#define TIMESTEPS 75000
+#define SUBDIFFUSE 800         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
+#define DIFFUSE 1200           //81, do y=1250000 101, do y=2000000
+//#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
+#define DATAPOINTS ((TIMESTEPS/10)+10)
 
 //(((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10)
 //(((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) 
@@ -109,20 +109,14 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 		int nloopx;
 		int nloopy;
 		int nloopz;
+
 		float smidx = 0;
 		float smidy = 0;
 		float smidz = 0;
-		int iran = 0;
 		float xSum = 0;
 		float ySum = 0;
 		float zSum = 0;
-		float radx = 0; 
-		float rady = 0;
-		float radz = 0;
 		float vrad = 0;
-		float dx = 0;
-		float dy = 0;
-		float dz = 0;
 		int Gridx[POLYLENGTH];
 		int Gridy[POLYLENGTH];
 		int Gridz[POLYLENGTH];
@@ -137,10 +131,10 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 
 		for(a=0; a < POLYLENGTH; a++)
 		{
-			iran = (int)(curand_uniform(&randState)*3);
+			randomdir = (int)(curand_uniform(&randState)*3);
 			block = 0;
 
-			if(iran==2)
+			if(randomdir==2)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -158,7 +152,7 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 				if (block == 0) Gridx[POLYLENGTH-1]++;
 			}
 
-			if(iran==1)
+			if(randomdir==1)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -176,7 +170,7 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 				if (block == 0) Gridy[POLYLENGTH-1]++;
 			}
 
-			if(iran==0)
+			if(randomdir==0)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -746,27 +740,18 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 					smidz = smidz + (float)Gridz[a];
 				}
 			}
-			//if ((y % 10) == 0 )
-			if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-				((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-				((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+			if ((y % 10) == 0 )
+			//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+				//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+				//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 			{
-				dx = 0;
-				dy = 0;
-				dz = 0;
-
-				dx = Gridx[POLYLENGTH - 1] - Gridx[0];
-				dy = Gridy[POLYLENGTH - 1] - Gridy[0];
-				dz = Gridz[POLYLENGTH - 1] - Gridz[0];
-
-				endtoend = sqrt(dx * dx + dy * dy + dz * dz);
+				endtoend = sqrt((float)(((Gridx[POLYLENGTH - 1] - Gridx[0]) * (Gridx[POLYLENGTH - 1] - Gridx[0]))
+					+ ((Gridy[POLYLENGTH - 1] - Gridy[0]) * (Gridy[POLYLENGTH - 1] - Gridy[0]))
+					+ ((Gridz[POLYLENGTH - 1] - Gridz[0]) * (Gridz[POLYLENGTH - 1] - Gridz[0]))));
 
 				xSum = 0;
 				ySum = 0;
 				zSum = 0;
-				radx = 0; 
-				rady = 0;
-				radz = 0;
 				vrad = 0;
 
 				for (a=0; a < POLYLENGTH; a++)
@@ -780,10 +765,9 @@ __global__ void cudarandomwalk(Polymer *polymers, curandState *randStates, unsig
 				zSum = (zSum)/float(POLYLENGTH);
 				for (a=0;a<POLYLENGTH;a++)
 				{
-					radx = (((float(Gridx[a])) - xSum)*((float(Gridx[a])) - xSum));
-					rady = (((float(Gridy[a])) - ySum)*((float(Gridy[a])) - ySum));
-					radz = (((float(Gridz[a])) - zSum)*((float(Gridz[a])) - zSum));
-					vrad = vrad + radx + rady + radz;
+					vrad = vrad + ((((float(Gridx[a])) - xSum)*((float(Gridx[a])) - xSum)))
+						+ ((((float(Gridy[a])) - ySum)*((float(Gridy[a])) - ySum)))
+						+ ((((float(Gridz[a])) - zSum)*((float(Gridz[a])) - zSum)));
 				}
 
 				radofgy = sqrt(vrad/(float(POLYLENGTH)));
@@ -859,8 +843,6 @@ int main()
 
 	outfile << "TimeStep " << "E2EDistance " << "RadofGy " << "R^2 " << "log10(TimeStep) " << "log10(R^2) " << endl;
 
-	cout << "_____________" << endl << "STARTING STATS ..." << endl;
-
 	int polycount = NoPOLY;
 	Polymer *Allpoly; 
 	cudaMallocManaged(&Allpoly, polycount * sizeof(Polymer));
@@ -885,16 +867,17 @@ int main()
 	cout<<endl<<"Kernal Run time is "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 
 	int datapointindex = 0;
-	for (y=0; y<=TIMESTEPS; y++)
+	//for (y=(SUBDIFFUSE-10); y<=TIMESTEPS; y++)
+	for (y=(0); y<=TIMESTEPS; y++)
 	{
 		statistics rsq;
 		statistics flength;
 		statistics rgst;
 
-		//if ((y % 10) == 0 )
-		if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-			((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-			((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+		if ((y % 10) == 0 )
+		//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+			//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+			//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 		{
 			for (x=0; x < polycount; x++) 
 			{
@@ -904,12 +887,13 @@ int main()
 			}
 			datapointindex++;
 		}
-		//if ((y % 10) == 0 )
-		if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-			((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
-			((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+		if ((y % 10) == 0 )
+		//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+			//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) || 
+			//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 		{
-			outfile << (y-SUBDIFFUSE) << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
+			//outfile << (y-SUBDIFFUSE) << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
+			outfile << (y) << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
 		}
 	}
 
@@ -917,10 +901,6 @@ int main()
 
 	cudaFree(Allpoly);
 	cudaFree(randStates);
-
-	cout << "_____________" << endl << "PRINTING STATS ..." << endl;
-
-	cout << "_____________" << endl << "FINISHED STATS ..." << endl;
 
 	cudaDeviceReset();
 	outfile.close();
