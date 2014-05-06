@@ -22,7 +22,7 @@ using namespace std;
 
 //Timing stuff
 
-#define TIMESTEPS 75000    // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
+#define TIMESTEPS 5000   // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
 #define SUBDIFFUSE 800         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
 #define DIFFUSE 1200        //81, do y=1250000 101, do y=2000000
 //#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
