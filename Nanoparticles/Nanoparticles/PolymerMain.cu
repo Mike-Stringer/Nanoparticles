@@ -71,7 +71,6 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 		int upnode;
 		int downnode;
 
-		int iran = 0;
 		int randomdir = 0;
 		float endtoend;
 		float beadtomid;
@@ -103,10 +102,10 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 
 		for(a=0; a < POLYLENGTH; a++)
 		{
-			iran = (int)(curand_uniform(&randState)*3);
+			randomdir = (int)(curand_uniform(&randState)*3);
 			block = 0;
 
-			if(iran==2)
+			if(randomdir==2)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -124,7 +123,7 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				if (block == 0) Gridx[POLYLENGTH-1]++;
 			}
 
-			if(iran==1)
+			if(randomdir==1)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -142,7 +141,7 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				if (block == 0) Gridy[POLYLENGTH-1]++;
 			}
 
-			if(iran==0)
+			if(randomdir==0)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
