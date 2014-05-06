@@ -22,11 +22,11 @@ using namespace std;
 
 //Timing stuff
 
-#define TIMESTEPS 5000   // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
-#define SUBDIFFUSE 800         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
-#define DIFFUSE 1200        //81, do y=1250000 101, do y=2000000
-//#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
-#define DATAPOINTS ((TIMESTEPS/10)+10)
+#define TIMESTEPS 10000000   // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
+#define SUBDIFFUSE 100000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
+#define DIFFUSE 150000        //81, do y=1250000 101, do y=2000000
+#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
+//#define DATAPOINTS ((TIMESTEPS/10)+10)
 
 //(((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10)
 //(((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250)
@@ -102,10 +102,10 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 
 		for(a=0; a < POLYLENGTH; a++)
 		{
-			randomdir = (int)(curand_uniform(&randState)*3);
+			randomdir = (int)(curand_uniform(&randState)*2);
 			block = 0;
 
-			if(randomdir==2)
+			if(randomdir==0)
 			{
 				for (resloop = 1; resloop <= RESOLUTION; resloop++)
 				{
@@ -141,23 +141,23 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				if (block == 0) Gridy[POLYLENGTH-1]++;
 			}
 
-			if(randomdir==0)
-			{
-				for (resloop = 1; resloop <= RESOLUTION; resloop++)
-				{
-					for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-					{
-						for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-						{
-							for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-							{
-								if (((((Gridx[POLYLENGTH-1])%DENSITY) == nloopx)) && ((((Gridy[POLYLENGTH-1])%DENSITY) == nloopy)) && ((((Gridz[POLYLENGTH-1]+resloop)%DENSITY) == nloopz))) block = 1;
-							}
-						}
-					}
-				}
-				if (block == 0) Gridz[POLYLENGTH-1]++;
-			}
+			//if(randomdir==2)
+			//{
+			//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+			//	{
+			//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+			//		{
+			//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+			//			{
+			//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+			//				{
+			//					if (((((Gridx[POLYLENGTH-1])%DENSITY) == nloopx)) && ((((Gridy[POLYLENGTH-1])%DENSITY) == nloopy)) && ((((Gridz[POLYLENGTH-1]+resloop)%DENSITY) == nloopz))) block = 1;
+			//				}
+			//			}
+			//		}
+			//	}
+			//	if (block == 0) Gridz[POLYLENGTH-1]++;
+			//}
 
 			if (block == 0)
 			{
@@ -176,7 +176,7 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				block = 0;
 
 				currentnode = (int)(curand_uniform(&randState)*POLYLENGTH);
-				randomdir = (int)(curand_uniform(&randState)*6);
+				randomdir = (int)(curand_uniform(&randState)*4);
 
 				upnode=(currentnode+1);
 				downnode=(currentnode-1);
@@ -296,62 +296,62 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 							Gridy[currentnode]++;
 						}
 					}
-					if (randomdir == 4)
-					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
-												(((((Gridz[upnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
-						if (block == 0)
-						{
-							Gridx[currentnode] = Gridx[upnode];
-							Gridy[currentnode] = Gridy[upnode];
-							Gridz[currentnode] = Gridz[upnode];
-							Gridz[currentnode]--;
-						}
-					}
-					if (randomdir == 5)
-					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
-												(((((Gridz[upnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
-						if (block == 0)
-						{
-							Gridx[currentnode] = Gridx[upnode];
-							Gridy[currentnode] = Gridy[upnode];
-							Gridz[currentnode] = Gridz[upnode];
-							Gridz[currentnode]++;
-						}
-					}
+					//if (randomdir == 4)
+					//{
+					//	if (NANOSIZE != 0)
+					//	{
+					//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+					//		{
+					//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+					//			{
+					//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+					//				{
+					//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+					//					{
+					//						if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
+					//							(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
+					//							(((((Gridz[upnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+					//					}
+					//				}
+					//			}
+					//		}
+					//	}
+					//	if (block == 0)
+					//	{
+					//		Gridx[currentnode] = Gridx[upnode];
+					//		Gridy[currentnode] = Gridy[upnode];
+					//		Gridz[currentnode] = Gridz[upnode];
+					//		Gridz[currentnode]--;
+					//	}
+					//}
+					//if (randomdir == 5)
+					//{
+					//	if (NANOSIZE != 0)
+					//	{
+					//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+					//		{
+					//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+					//			{
+					//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+					//				{
+					//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+					//					{
+					//						if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
+					//							(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
+					//							(((((Gridz[upnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+					//					}
+					//				}
+					//			}
+					//		}
+					//	}
+					//	if (block == 0)
+					//	{
+					//		Gridx[currentnode] = Gridx[upnode];
+					//		Gridy[currentnode] = Gridy[upnode];
+					//		Gridz[currentnode] = Gridz[upnode];
+					//		Gridz[currentnode]++;
+					//	}
+					//}
 				} 
 
 				if (currentnode == (POLYLENGTH-1))
@@ -468,62 +468,62 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 							Gridy[currentnode]++;
 						}
 					}
-					if (randomdir == 4)
-					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == nloopx) || ((((Gridx[downnode])%DENSITY)) == (nloopx-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == nloopy) || ((((Gridy[downnode])%DENSITY)) == (nloopy-DENSITY))) &&
-												(((((Gridz[downnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[downnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
-						if (block == 0)
-						{
-							Gridx[currentnode] = Gridx[downnode];
-							Gridy[currentnode] = Gridy[downnode];
-							Gridz[currentnode] = Gridz[downnode];
-							Gridz[currentnode]--;
-						}
-					}
-					if (randomdir == 5)
-					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == nloopx) || ((((Gridx[downnode])%DENSITY)) == (nloopx-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == nloopy) || ((((Gridy[downnode])%DENSITY)) == (nloopy-DENSITY))) &&
-												(((((Gridz[downnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[downnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
-						if (block == 0)
-						{
-							Gridx[currentnode] = Gridx[downnode];
-							Gridy[currentnode] = Gridy[downnode];
-							Gridz[currentnode] = Gridz[downnode];
-							Gridz[currentnode]++;
-						}
-					}
+					//if (randomdir == 4)
+					//{
+					//	if (NANOSIZE != 0)
+					//	{
+					//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+					//		{
+					//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+					//			{
+					//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+					//				{
+					//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+					//					{
+					//						if ((((((Gridx[downnode])%DENSITY)) == nloopx) || ((((Gridx[downnode])%DENSITY)) == (nloopx-DENSITY))) &&
+					//							(((((Gridy[downnode])%DENSITY)) == nloopy) || ((((Gridy[downnode])%DENSITY)) == (nloopy-DENSITY))) &&
+					//							(((((Gridz[downnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[downnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+					//					}
+					//				}
+					//			}
+					//		}
+					//	}
+					//	if (block == 0)
+					//	{
+					//		Gridx[currentnode] = Gridx[downnode];
+					//		Gridy[currentnode] = Gridy[downnode];
+					//		Gridz[currentnode] = Gridz[downnode];
+					//		Gridz[currentnode]--;
+					//	}
+					//}
+					//if (randomdir == 5)
+					//{
+					//	if (NANOSIZE != 0)
+					//	{
+					//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+					//		{
+					//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+					//			{
+					//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+					//				{
+					//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+					//					{
+					//						if ((((((Gridx[downnode])%DENSITY)) == nloopx) || ((((Gridx[downnode])%DENSITY)) == (nloopx-DENSITY))) &&
+					//							(((((Gridy[downnode])%DENSITY)) == nloopy) || ((((Gridy[downnode])%DENSITY)) == (nloopy-DENSITY))) &&
+					//							(((((Gridz[downnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[downnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+					//					}
+					//				}
+					//			}
+					//		}
+					//	}
+					//	if (block == 0)
+					//	{
+					//		Gridx[currentnode] = Gridx[downnode];
+					//		Gridy[currentnode] = Gridy[downnode];
+					//		Gridz[currentnode] = Gridz[downnode];
+					//		Gridz[currentnode]++;
+					//	}
+					//}
 				}
 
 				if ((0 < currentnode) && (currentnode < (POLYLENGTH-1)))
@@ -642,62 +642,62 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 								Gridy[currentnode]++;
 							}
 						}
-						if (randomdir == 4)
-						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
-													(((((Gridz[upnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
-							if (block == 0)
-							{
-								Gridx[currentnode] = Gridx[upnode];
-								Gridy[currentnode] = Gridy[upnode];
-								Gridz[currentnode] = Gridz[upnode];
-								Gridz[currentnode]--;
-							}
-						}
-						if (randomdir == 5)
-						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
-													(((((Gridz[upnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
-							if (block == 0)
-							{
-								Gridx[currentnode] = Gridx[upnode];
-								Gridy[currentnode] = Gridy[upnode];
-								Gridz[currentnode] = Gridz[upnode];
-								Gridz[currentnode]++;
-							}
-						}
+						//if (randomdir == 4)
+						//{
+						//	if (NANOSIZE != 0)
+						//	{
+						//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//		{
+						//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//			{
+						//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//				{
+						//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//					{
+						//						if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
+						//							(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
+						//							(((((Gridz[upnode]-resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]-resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+						//					}
+						//				}
+						//			}
+						//		}
+						//	}
+						//	if (block == 0)
+						//	{
+						//		Gridx[currentnode] = Gridx[upnode];
+						//		Gridy[currentnode] = Gridy[upnode];
+						//		Gridz[currentnode] = Gridz[upnode];
+						//		Gridz[currentnode]--;
+						//	}
+						//}
+						//if (randomdir == 5)
+						//{
+						//	if (NANOSIZE != 0)
+						//	{
+						//		for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//		{
+						//			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//			{
+						//				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//				{
+						//					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//					{
+						//						if ((((((Gridx[upnode])%DENSITY)) == nloopx) || ((((Gridx[upnode])%DENSITY)) == (nloopx-DENSITY))) &&
+						//							(((((Gridy[upnode])%DENSITY)) == nloopy) || ((((Gridy[upnode])%DENSITY)) == (nloopy-DENSITY))) &&
+						//							(((((Gridz[upnode]+resloop)%DENSITY)) == nloopz) || ((((Gridz[upnode]+resloop)%DENSITY)) == (nloopz-DENSITY)))) block = 1;
+						//					}
+						//				}
+						//			}
+						//		}
+						//	}
+						//	if (block == 0)
+						//	{
+						//		Gridx[currentnode] = Gridx[upnode];
+						//		Gridy[currentnode] = Gridy[upnode];
+						//		Gridz[currentnode] = Gridz[upnode];
+						//		Gridz[currentnode]++;
+						//	}
+						//}
 					}
 				}
 				//-------------------------------------------------------------------block changes ------------------------------------------------------//
@@ -711,10 +711,10 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					smidz = smidz + (float)Gridz[a];
 				}
 			}
-			if ((y % 10) == 0 )
-			//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-				//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-				//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+			//if ((y % 10) == 0 )
+			if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+				((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+				((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 			{
 				endtoend = sqrt((float)((Gridx[POLYLENGTH - 1] - Gridx[0]) * (Gridx[POLYLENGTH - 1] - Gridx[0]) +
 					(Gridy[POLYLENGTH - 1] - Gridy[0]) * (Gridy[POLYLENGTH - 1] - Gridy[0]) +
@@ -856,16 +856,16 @@ int main()
 	finishtime2 = clock();
 	cout<<endl<<"Kernal Run time is "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 
-	//for(y = (SUBDIFFUSE - 10) ; y < TIMESTEPS; y++)  
-    for(y = (0) ; y < TIMESTEPS; y++)  
+	for(y = (SUBDIFFUSE - 10) ; y < TIMESTEPS; y++)  
+    //for(y = (0) ; y < TIMESTEPS; y++)  
 	{ 
 		statistics rsq;
 		statistics flength;
 		statistics rgst;
-		//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-		//	((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-		//	((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
-		if ((y % 10) == 0)
+		if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+			((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+			((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+		//if ((y % 10) == 0)
 		{
 			for(ig = 0 ; ig < NoPOLY; ig++)  
 			{ 
@@ -874,8 +874,8 @@ int main()
 				rgst.add(h_radofgys[(jg*NoPOLY)+ig]);
 			}
 			jg++;
-			//outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
-			outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
+			outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
+			//outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
 		}
 	} 
 
