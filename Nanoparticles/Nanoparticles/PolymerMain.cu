@@ -35,7 +35,7 @@ using namespace std;
 
 //length of polymer
 
-#define POLYLENGTH 81
+#define POLYLENGTH 21
 #define RESOLUTION 1                  //segment length //carefull drastically reduces number of conformations
 #define NANOSIZE 0             //size of nanoparticle
 #define DENSITY 2               //NANOSIZE:DENSITY makes the ratio, with 1, 2, 3 .......DENSITY    where NANOSIZE fills 1 if 1,  1,2 if 2 1,2,3 if 3 etc etc.
@@ -803,10 +803,10 @@ int main()
 	int y = 0;
 	int ig = 0;
 	int jg = 0;
-	int check1 = (((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10);
-	int check2 = (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250);
-	int check3 = (((DIFFUSE*5) - (DIFFUSE))/5000);
-	int check4 = (((TIMESTEPS) - (DIFFUSE*5))/30000);
+	float check1 = (((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10);
+	float check2 = (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250);
+	float check3 = (((DIFFUSE*5) - (DIFFUSE))/5000);
+	float check4 = (((TIMESTEPS) - (DIFFUSE*5))/30000);
 
 	float *placeend;
 	float *placebead;
@@ -834,14 +834,14 @@ int main()
 	cout << "Should be integers:" << check1 << "," << check2 << "," << check3 << "," << check4 << endl;
 
 	ofstream outfile;
-	outfile.open ("81-(XX---).txt"); //*************************************************************************************************************************************************PROGRAM NAME
+	outfile.open ("Stats.txt"); //*************************************************************************************************************************************************PROGRAM NAME
 	if (!outfile.is_open())
 	{
 		cout << "file not open" << endl;
 		return 666;
 	}
 
-	outfile << "TimeStep " << "E2EDistance " << "RadofGy " << "R^2 " << "log10(TimeStep) " << "log10(R^2) " << endl;
+	outfile << "TimeStep " << "E2EDistance " << "ErrorE2E " << "RadofGy " << "ErrorRadofgy " << "R^2 " << "ErrorR^2 " << "log10(TimeStep) " << "log10(R^2) " << "ErrorLog10(R^2) " << endl;
 
 	//-----------------------------------------------------------KERNAL CALL------------------------------------------------------------------------------------//
 
@@ -875,7 +875,10 @@ int main()
 			}
 			jg++;
 			//outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
-			outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
+			outfile << y << " " <<  flength.getAverage() << " "  << (sqrt(flength.getSqAverage() - (flength.getAverage()*flength.getAverage()))/((float)NoPOLY)) 
+				<< " " <<  rgst.getAverage()  << " " << (sqrt(rgst.getSqAverage() - (rgst.getAverage()*rgst.getAverage()))/((float)NoPOLY)) << " "  
+				<< rsq.getAverage() << " " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))  << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) 
+				<< "  " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))/(rsq.getAverage()*2.302585) << endl;
 		}
 	} 
 
