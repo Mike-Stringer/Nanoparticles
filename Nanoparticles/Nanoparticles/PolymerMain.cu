@@ -40,7 +40,7 @@ using namespace std;
 
 #define POLYLENGTH 21
 #define RESOLUTION 1                  //segment length //carefull drastically reduces number of conformations
-#define NANOSIZE 2              //size of nanoparticle
+#define NANOSIZE 0              //size of nanoparticle
 #define DENSITY 10               //NANOSIZE:DENSITY makes the ratio, with 1, 2, 3 .......DENSITY    where NANOSIZE fills 1 if 1,  1,2 if 2 1,2,3 if 3 etc etc.
 
 class statistics{
@@ -95,9 +95,9 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 		int Gridy[POLYLENGTH];
 		int Gridz[POLYLENGTH];
 
-	    int Randomx[NANOSIZE];
-        int Randomy[NANOSIZE];
-        int Randomz[NANOSIZE];
+	    //int Randomx[NANOSIZE];
+     //   int Randomy[NANOSIZE];
+     //   int Randomz[NANOSIZE];
 		int b;
 
 		int startx = (int)(curand_uniform(&randState)*1000) + 1000;
@@ -105,57 +105,57 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 		int startz = (int)(curand_uniform(&randState)*1000) + 1000;
 
 	
-		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-		{
-			Randomx[nloopx] = 0;
-			Randomy[nloopx] = 0;
-			Randomz[nloopx] = 0;
-		}
+		//for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+		//{
+		//	Randomx[nloopx] = 0;
+		//	Randomy[nloopx] = 0;
+		//	Randomz[nloopx] = 0;
+		//}
 
-		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-		{
-			randomdir = (int)(curand_uniform(&randState)*DENSITY);
+		//for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+		//{
+		//	randomdir = (int)(curand_uniform(&randState)*DENSITY);
 
-			Randomx[nloopx] = randomdir;
+		//	Randomx[nloopx] = randomdir;
 
-			if (nloopx>0)
-			{
-				for (nloopy = 0; nloopy < (nloopx); nloopy++)
-				{
-					if (Randomx[nloopx] == Randomx[nloopy]) nloopx--;
-				}
-			}
-		}
+		//	if (nloopx>0)
+		//	{
+		//		for (nloopy = 0; nloopy < (nloopx); nloopy++)
+		//		{
+		//			if (Randomx[nloopx] == Randomx[nloopy]) nloopx--;
+		//		}
+		//	}
+		//}
 
-		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-		{
-			randomdir = (int)(curand_uniform(&randState)*DENSITY);
+		//for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+		//{
+		//	randomdir = (int)(curand_uniform(&randState)*DENSITY);
 
-			Randomy[nloopx] = randomdir;
+		//	Randomy[nloopx] = randomdir;
 
-			if (nloopx>0)
-			{
-				for (nloopy = 0; nloopy < (nloopx); nloopy++)
-				{
-					if (Randomy[nloopx] == Randomy[nloopy]) nloopx--;
-				}
-			}
-		}
+		//	if (nloopx>0)
+		//	{
+		//		for (nloopy = 0; nloopy < (nloopx); nloopy++)
+		//		{
+		//			if (Randomy[nloopx] == Randomy[nloopy]) nloopx--;
+		//		}
+		//	}
+		//}
 
-		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-		{
-			randomdir = (int)(curand_uniform(&randState)*DENSITY);
+		//for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+		//{
+		//	randomdir = (int)(curand_uniform(&randState)*DENSITY);
 
-			Randomz[nloopx] = randomdir;
+		//	Randomz[nloopx] = randomdir;
 
-			if (nloopx>0)
-			{
-				for (nloopy = 0; nloopy < (nloopx); nloopy++)
-				{
-					if (Randomz[nloopx] == Randomz[nloopy]) nloopx--;
-				}
-			}
-		}
+		//	if (nloopx>0)
+		//	{
+		//		for (nloopy = 0; nloopy < (nloopx); nloopy++)
+		//		{
+		//			if (Randomz[nloopx] == Randomz[nloopy]) nloopx--;
+		//		}
+		//	}
+		//}
 
 		for (a=0; a < POLYLENGTH; a++)
 		{
@@ -165,77 +165,39 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 		}
 
 
-		block=0;
-		resloop=0;
-		for(b=1; b < 2; b++)
-		{
-			block=0;
-			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-			{
-				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-				{
-					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-					{
-						    if (((((Gridx[a]+resloop)%DENSITY) == nloopx))
-							&& ((((Gridy[a]+resloop)%DENSITY) == nloopy))
-							&& ((((Gridz[a]+resloop)%DENSITY) == nloopz))) block = 1;
-					}
-				}
-			}
-			if (block == 1)
-			{
-				b--;
-			    resloop++;
-			}
-			if (block == 0)
-			{
-				for (a=0; a < POLYLENGTH; a++)
-				{
-					Gridx[a]= Gridx[a]+resloop;
-					Gridy[a]= Gridy[a]+resloop;
-					Gridz[a]= Gridz[a]+resloop;
-				}
-				b++;
-			}
-		}
-
-
-
-
-
-		/*block=0;
-		resloop=0;
-		for(b=1; b < 2; b++)
-		{
-			block=0;
-			for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-			{
-				for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-				{
-					for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-					{
-						    if ((((resloop%DENSITY) == Randomx[nloopx]))
-							&& (((resloop%DENSITY) == Randomy[nloopy]))
-							&& (((resloop%DENSITY) == Randomz[nloopz]))) block = 1;
-					}
-				}
-			}
-			if (block == 1)
-			{
-				b--;
-			    resloop++;
-			}
-			if (block == 0)
-			{
-				for (a=0; a < POLYLENGTH; a++)
-				{
-					Gridx[a]=resloop;
-					Gridy[a]=resloop;
-					Gridz[a]=resloop;
-				}
-				b++;
-			}
-		}*/
+		//block=0;
+		//resloop=0;
+		//for(b=1; b < 2; b++)
+		//{
+		//	block=0;
+		//	for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+		//	{
+		//		for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+		//		{
+		//			for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+		//			{
+		//				    if (((((Gridx[a]+resloop)%DENSITY) == nloopx))
+		//					&& ((((Gridy[a]+resloop)%DENSITY) == nloopy))
+		//					&& ((((Gridz[a]+resloop)%DENSITY) == nloopz))) block = 1;
+		//			}
+		//		}
+		//	}
+		//	if (block == 1)
+		//	{
+		//		b--;
+		//	    resloop++;
+		//	}
+		//	if (block == 0)
+		//	{
+		//		for (a=0; a < POLYLENGTH; a++)
+		//		{
+		//			Gridx[a]= Gridx[a]+resloop;
+		//			Gridy[a]= Gridy[a]+resloop;
+		//			Gridz[a]= Gridz[a]+resloop;
+		//		}
+		//		b++;
+		//	}
+		//}
 		
 
 		for(a=0; a < POLYLENGTH; a++)
@@ -245,55 +207,55 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 
 			if(randomdir==2)
 			{
-				for (resloop = 1; resloop <= RESOLUTION; resloop++)
-				{
-					for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-					{
-						for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-						{
-							for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-							{
-								if (((((Gridx[POLYLENGTH-1]+resloop)%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1])%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1])%DENSITY) == Randomz[nloopz]))) block = 1;
-							}
-						}
-					}
-				}
+				//for (resloop = 1; resloop <= RESOLUTION; resloop++)
+				//{
+				//	for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+				//	{
+				//		for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+				//		{
+				//			for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+				//			{
+				//				if (((((Gridx[POLYLENGTH-1]+resloop)%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1])%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1])%DENSITY) == Randomz[nloopz]))) block = 1;
+				//			}
+				//		}
+				//	}
+				//}
 				if (block == 0) Gridx[POLYLENGTH-1]++;
 			}
 
 			if(randomdir==1)
 			{
-				for (resloop = 1; resloop <= RESOLUTION; resloop++)
-				{
-					for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-					{
-						for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-						{
-							for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-							{
-								if (((((Gridx[POLYLENGTH-1])%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1]+resloop)%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1])%DENSITY) == Randomz[nloopz]))) block = 1;
-							}
-						}
-					}
-				}
+				//for (resloop = 1; resloop <= RESOLUTION; resloop++)
+				//{
+				//	for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+				//	{
+				//		for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+				//		{
+				//			for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+				//			{
+				//				if (((((Gridx[POLYLENGTH-1])%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1]+resloop)%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1])%DENSITY) == Randomz[nloopz]))) block = 1;
+				//			}
+				//		}
+				//	}
+				//}
 				if (block == 0) Gridy[POLYLENGTH-1]++;
 			}
 
 			if(randomdir==0)
 			{
-				for (resloop = 1; resloop <= RESOLUTION; resloop++)
-				{
-					for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-					{
-						for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-						{
-							for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-							{
-								if (((((Gridx[POLYLENGTH-1])%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1])%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1]+resloop)%DENSITY) == Randomz[nloopz]))) block = 1;
-							}
-						}
-					}
-				}
+				//for (resloop = 1; resloop <= RESOLUTION; resloop++)
+				//{
+				//	for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+				//	{
+				//		for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+				//		{
+				//			for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+				//			{
+				//				if (((((Gridx[POLYLENGTH-1])%DENSITY) == Randomx[nloopx])) && ((((Gridy[POLYLENGTH-1])%DENSITY) == Randomy[nloopy])) && ((((Gridz[POLYLENGTH-1]+resloop)%DENSITY) == Randomz[nloopz]))) block = 1;
+				//			}
+				//		}
+				//	}
+				//}
 				if (block == 0) Gridz[POLYLENGTH-1]++;
 			}
 
@@ -324,24 +286,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				{
 					if (randomdir == 0)
 					{  
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -352,24 +314,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 1)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -380,24 +342,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 2)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -408,24 +370,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 3)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -436,24 +398,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 4)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -464,24 +426,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 5)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[upnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[upnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[upnode];
@@ -496,24 +458,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 				{
 					if (randomdir == 0)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -524,24 +486,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 1)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -552,24 +514,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 2)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -580,24 +542,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 3)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -608,24 +570,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 4)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -636,24 +598,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					}
 					if (randomdir == 5)
 					{
-						if (NANOSIZE != 0)
-						{
-							for (resloop = 1; resloop <= RESOLUTION; resloop++)
-							{
-								for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-								{
-									for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-									{
-										for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-										{
-											if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-												(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-												(((((Gridz[downnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-										}
-									}
-								}
-							}
-						}
+						//if (NANOSIZE != 0)
+						//{
+						//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+						//	{
+						//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+						//		{
+						//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+						//			{
+						//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+						//				{
+						//					if ((((((Gridx[downnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[downnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+						//						(((((Gridy[downnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[downnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+						//						(((((Gridz[downnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[downnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+						//				}
+						//			}
+						//		}
+						//	}
+						//}
 						if (block == 0)
 						{
 							Gridx[currentnode] = Gridx[downnode];
@@ -670,24 +632,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					{
 						if (randomdir == 0)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode]-resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]-resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
@@ -698,24 +660,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 						}
 						if (randomdir == 1)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode]+resloop)%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode]+resloop)%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
@@ -726,24 +688,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 						}
 						if (randomdir == 2)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode]-resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]-resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
@@ -754,24 +716,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 						}
 						if (randomdir == 3)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode]+resloop)%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode]+resloop)%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode])%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode])%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
@@ -782,24 +744,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 						}
 						if (randomdir == 4)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode]-resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]-resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
@@ -810,24 +772,24 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 						}
 						if (randomdir == 5)
 						{
-							if (NANOSIZE != 0)
-							{
-								for (resloop = 1; resloop <= RESOLUTION; resloop++)
-								{
-									for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
-									{
-										for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
-										{
-											for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
-											{
-												if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
-													(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
-													(((((Gridz[upnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
-											}
-										}
-									}
-								}
-							}
+							//if (NANOSIZE != 0)
+							//{
+							//	for (resloop = 1; resloop <= RESOLUTION; resloop++)
+							//	{
+							//		for (nloopx = 0; nloopx < NANOSIZE; nloopx++)
+							//		{
+							//			for (nloopy = 0; nloopy < NANOSIZE; nloopy++)
+							//			{
+							//				for (nloopz = 0; nloopz < NANOSIZE; nloopz++)
+							//				{
+							//					if ((((((Gridx[upnode])%DENSITY)) == Randomx[nloopx]) || ((((Gridx[upnode])%DENSITY)) == ( Randomx[nloopx]-DENSITY))) &&
+							//						(((((Gridy[upnode])%DENSITY)) == Randomy[nloopy]) || ((((Gridy[upnode])%DENSITY)) == ( Randomy[nloopy]-DENSITY))) &&
+							//						(((((Gridz[upnode]+resloop)%DENSITY)) == Randomz[nloopz]) || ((((Gridz[upnode]+resloop)%DENSITY)) == ( Randomz[nloopz]-DENSITY)))) block = 1;
+							//				}
+							//			}
+							//		}
+							//	}
+							//}
 							if (block == 0)
 							{
 								Gridx[currentnode] = Gridx[upnode];
