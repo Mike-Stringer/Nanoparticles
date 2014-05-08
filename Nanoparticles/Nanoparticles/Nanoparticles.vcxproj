@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="PolymerMain.cu">
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_30,sm_30</CodeGeneration>
+      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_20,sm_20</CodeGeneration>
     </CudaCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">

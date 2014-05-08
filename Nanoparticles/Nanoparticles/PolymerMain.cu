@@ -25,8 +25,8 @@ using namespace std;
 #define TIMESTEPS 15000    // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
 #define SUBDIFFUSE 7500         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
 #define DIFFUSE 12500        //81, do y=1250000 101, do y=2000000
-#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
-//#define DATAPOINTS ((TIMESTEPS/10)+10)
+//#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
+#define DATAPOINTS ((TIMESTEPS/10)+10)
 
 //(((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10)
 //(((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250)
@@ -37,8 +37,8 @@ using namespace std;
 
 #define POLYLENGTH 81
 #define RESOLUTION 1                  //segment length //carefull drastically reduces number of conformations
-#define NANOSIZE 2             //size of nanoparticle
-#define DENSITY 5               //NANOSIZE:DENSITY makes the ratio, with 1, 2, 3 .......DENSITY    where NANOSIZE fills 1 if 1,  1,2 if 2 1,2,3 if 3 etc etc.
+#define NANOSIZE 0             //size of nanoparticle
+#define DENSITY 2               //NANOSIZE:DENSITY makes the ratio, with 1, 2, 3 .......DENSITY    where NANOSIZE fills 1 if 1,  1,2 if 2 1,2,3 if 3 etc etc.
 
 class statistics{
 
@@ -711,10 +711,10 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					smidz = smidz + (float)Gridz[a];
 				}
 			}
-			//if ((y % 10) == 0 )
-			if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-				((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-				((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+			if ((y % 10) == 0 )
+			//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+				//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+				//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
 			{
 				endtoend = sqrt((float)((Gridx[POLYLENGTH - 1] - Gridx[0]) * (Gridx[POLYLENGTH - 1] - Gridx[0]) +
 					(Gridy[POLYLENGTH - 1] - Gridy[0]) * (Gridy[POLYLENGTH - 1] - Gridy[0]) +
@@ -856,16 +856,16 @@ int main()
 	finishtime2 = clock();
 	cout<<endl<<"Kernal Run time is "<<((finishtime2 - starttime2)/double(CLOCKS_PER_SEC))<<" seconds"<<endl<<endl;
 
-	for(y = (SUBDIFFUSE - 10) ; y < TIMESTEPS; y++)  
-    //for(y = (0) ; y < TIMESTEPS; y++)  
+	//for(y = (SUBDIFFUSE - 10) ; y < TIMESTEPS; y++)  
+    for(y = (0) ; y < TIMESTEPS; y++)  
 	{ 
 		statistics rsq;
 		statistics flength;
 		statistics rgst;
-		if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-			((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
-			((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
-		//if ((y % 10) == 0)
+		//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+			//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
+			//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
+		if ((y % 10) == 0)
 		{
 			for(ig = 0 ; ig < NoPOLY; ig++)  
 			{ 
@@ -874,8 +874,8 @@ int main()
 				rgst.add(h_radofgys[(jg*NoPOLY)+ig]);
 			}
 			jg++;
-			outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
-			//outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
+			//outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
+			outfile << y << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) << endl;
 		}
 	} 
 
