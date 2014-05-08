@@ -26,7 +26,8 @@ using namespace std;
 #define SUBDIFFUSE 7500         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
 #define DIFFUSE 12500        //81, do y=1250000 101, do y=2000000
 //#define DATAPOINTS (((((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10) + (((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250) + (((DIFFUSE*5) - (DIFFUSE))/5000) + (((TIMESTEPS) - (DIFFUSE*5))/30000))+10)
-#define DATAPOINTS ((TIMESTEPS/10)+10)
+//#define DATAPOINTS ((TIMESTEPS/10)+10)
+#define DATAPOINTS (1)
 
 //(((SUBDIFFUSE+(SUBDIFFUSE/10)) - (SUBDIFFUSE))/10)
 //(((DIFFUSE)  - (SUBDIFFUSE+(SUBDIFFUSE/10)))/250)
@@ -711,7 +712,8 @@ __global__ void cudarandomwalk(float* placeend, float* d_endtoends, float* place
 					smidz = smidz + (float)Gridz[a];
 				}
 			}
-			if ((y % 10) == 0 )
+			//if ((y % 10) == 0 )
+			if (y == 10000)
 			//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
 				//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
 				//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
@@ -834,15 +836,15 @@ int main()
 	cout << "Should be integers:" << check1 << "," << check2 << "," << check3 << "," << check4 << endl;
 
 	ofstream outfile;
-	outfile.open ("Stats.txt"); //*************************************************************************************************************************************************PROGRAM NAME
+	outfile.open ("gaussian.txt"); //*************************************************************************************************************************************************PROGRAM NAME
 	if (!outfile.is_open())
 	{
 		cout << "file not open" << endl;
 		return 666;
 	}
 
-	outfile << "TimeStep " << "E2EDistance " << "ErrorE2E " << "RadofGy " << "ErrorRadofgy " << "R^2 " << "ErrorR^2 " << "log10(TimeStep) " << "log10(R^2) " << "ErrorLog10(R^2) " << endl;
-
+	//outfile << "TimeStep " << "E2EDistance " << "ErrorE2E " << "RadofGy " << "ErrorRadofgy " << "R^2 " << "ErrorR^2 " << "log10(TimeStep) " << "log10(R^2) " << "ErrorLog10(R^2) " << endl;
+	outfile << "GDE2EDistance " << "GDRadofGy " << "GDR^2 " << endl;
 	//-----------------------------------------------------------KERNAL CALL------------------------------------------------------------------------------------//
 
 	starttime2 = clock();
@@ -865,20 +867,21 @@ int main()
 		//if ((((y % 10) == 0) && (y >= (SUBDIFFUSE+10)) && (y <= (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
 			//((y % 250) == 0 && (y <= (DIFFUSE)) && (y > (SUBDIFFUSE+(SUBDIFFUSE/10)))) ||
 			//((y % 5000) == 0 && (y <= (DIFFUSE*5)) && (y > DIFFUSE)) || ((y % 30000) == 0 && (y > (DIFFUSE*5))))
-		if ((y % 10) == 0)
+		if (y == 10000)
 		{
 			for(ig = 0 ; ig < NoPOLY; ig++)  
 			{ 
-				flength.add(h_endtoends[(jg*NoPOLY)+ig]);
-				rsq.add(h_beadtomids[(jg*NoPOLY)+ig]);
-				rgst.add(h_radofgys[(jg*NoPOLY)+ig]);
+				//flength.add(h_endtoends[(jg*NoPOLY)+ig]);
+				//rsq.add(h_beadtomids[(jg*NoPOLY)+ig]);
+				//rgst.add(h_radofgys[(jg*NoPOLY)+ig]);
+				outfile << h_endtoends[(jg*NoPOLY)+ig] << " " << h_radofgys[(jg*NoPOLY)+ig] << " " << h_beadtomids[(jg*NoPOLY)+ig] << endl;
 			}
 			jg++;
 			//outfile << y-SUBDIFFUSE << " " <<  flength.getAverage() << " " <<  rgst.getAverage()  << " "  << rsq.getAverage() << " " << log10((float)(y-SUBDIFFUSE)) << " " << log10(rsq.getAverage()) << endl;
-			outfile << y << " " <<  flength.getAverage() << " "  << (sqrt(flength.getSqAverage() - (flength.getAverage()*flength.getAverage()))/((float)NoPOLY)) 
-				<< " " <<  rgst.getAverage()  << " " << (sqrt(rgst.getSqAverage() - (rgst.getAverage()*rgst.getAverage()))/((float)NoPOLY)) << " "  
-				<< rsq.getAverage() << " " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))  << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) 
-				<< "  " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))/(rsq.getAverage()*2.302585) << endl;
+			//outfile << y << " " <<  flength.getAverage() << " "  << (sqrt(flength.getSqAverage() - (flength.getAverage()*flength.getAverage()))/((float)NoPOLY)) 
+			//	<< " " <<  rgst.getAverage()  << " " << (sqrt(rgst.getSqAverage() - (rgst.getAverage()*rgst.getAverage()))/((float)NoPOLY)) << " "  
+			//	<< rsq.getAverage() << " " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))  << " " << log10((float)(y)) << " " << log10(rsq.getAverage()) 
+			//	<< "  " << (sqrt(rsq.getSqAverage() - (rsq.getAverage()*rsq.getAverage()))/((float)NoPOLY))/(rsq.getAverage()*2.302585) << endl;
 		}
 	} 
 
