@@ -22,9 +22,9 @@ using namespace std;
 
 //Timing stuff
 
-#define TIMESTEPS 15000000      // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
-#define SUBDIFFUSE 500000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
-#define DIFFUSE 1000000        //81, do y=1250000 101, do y=2000000
+#define TIMESTEPS 150000      // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
+#define SUBDIFFUSE 5000         //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
+#define DIFFUSE 10000       //81, do y=1250000 101, do y=2000000
 //#define TIMESTEPS 1500000    // can be put down to 10000 for testing purposes with a change to the y bits and datapoints to %10 (already there just commented out)
 //#define SUBDIFFUSE 500        //21, do y=100000 41, do y=200000 61, do y=500000 81, do y=750000 121, do y=2000000 101, do y=1600000
 //#define DIFFUSE 1000     //81, do y=1250000 101, do y=2000000
@@ -40,7 +40,7 @@ using namespace std;
 
 #define POLYLENGTH 21
 //#define RESOLUTION 1                  //segment length //carefull drastically reduces number of conformations
-#define NANOSIZE 2              //size of nanoparticle
+#define NANOSIZE 4              //size of nanoparticle
 #define DENSITY 10               //NANOSIZE:DENSITY makes the ratio, with 1, 2, 3 .......DENSITY    where NANOSIZE fills 1 if 1,  1,2 if 2 1,2,3 if 3 etc etc.
 
 class statistics{
@@ -466,7 +466,7 @@ int main()
 	cout << "Should be integers:" << check1 << "," << check2 << "," << check3 << "," << check4 << endl;
 
 	ofstream outfile;
-	outfile.open ("Fullrandomtest.txt"); //*************************************************************************************************************************************************PROGRAM NAME
+	outfile.open ("pleaseworkFullrandomtest4:10.txt"); //*************************************************************************************************************************************************PROGRAM NAME
 	if (!outfile.is_open())
 	{
 		cout << "file not open" << endl;
