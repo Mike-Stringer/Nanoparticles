@@ -4,7 +4,7 @@
   <img src="https://github.com/Mike-Stringer/Nanoparticles/blob/master/RW.png"><br>
 </div>
 
-*Polymers & Nanoparticle*
+*Polymers & Nanoparticles*
 =============
 Written in C++ with CUDA
 
