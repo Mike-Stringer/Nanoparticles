@@ -1,5 +1,6 @@
-Nanoparticles
+Polymers & Nanoparticles
 =============
+Written in C++ with CUDA
 
 Nanoparticle Hyperthreading
 
