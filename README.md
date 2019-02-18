@@ -2,6 +2,8 @@ Polymers & Nanoparticles
 =============
 Written in C++ with CUDA
 
+[Cleaned code](Nanoparticles/Nanoparticles/Nanoparticles/PolymerMain.cu)
+
 Nanoparticle Hyperthreading
 
 - Polymers initialized in a grid of a possible 3D node positions
