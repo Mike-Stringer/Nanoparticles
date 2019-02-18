@@ -2,7 +2,7 @@ Polymers & Nanoparticles
 =============
 Written in C++ with CUDA
 
-[Cleaned code](https://github.com/Nanoparticles/Nanoparticles/Nanoparticles/PolymerMain.cu)
+[Cleaned code](https://github.com/Mike-Stringer/Nanoparticles/blob/master/Nanoparticles/Nanoparticles/PolymerMain.cu)
 
 Nanoparticle Hyperthreading
 
@@ -20,9 +20,7 @@ Nanoparticle Hyperthreading
 
 - batches of loops refer to randomly choosing a point on the polymer, if that point can move (hairpin or end) and if it is not blocked by NPs, then direction of movement is chosen.
 
-Please see [poster](https://github.com/Nanoparticles/PolymerDynamicsPoster.pdf) or 
-[report](
-        https://github.com/Nanoparticles/PolymerDynamics_2014_MichaelStringer.pdf
-      ) for more details!   
+Please see [poster](https://github.com/Mike-Stringer/Nanoparticles/blob/master/PolymerDynamicsPoster.pdf) or 
+[report](https://github.com/Mike-Stringer/Nanoparticles/blob/master/PolymerDynamics_2014_MichaelStringer.pdf) for more details!   
 	  
 	  
